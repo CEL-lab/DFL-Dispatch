@@ -1,0 +1,244 @@
+{
+ "base_a0.5": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.5_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.7": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.7_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_avrealized": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_fl0.02": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_fl0.02_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_fl0.1": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_fl0.1_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.1": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.1_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.1_fl0.02": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.1_fl0.02_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.1_fl0.1": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.1_fl0.1_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.3": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.3_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.3_fl0.02": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.3_fl0.02_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.3_fl0.1": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.8_hr1.3_fl0.1_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.9": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.95": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.95_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0.9_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_a0_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "base_testyear2016_a0.8": {
+  "n_test": 8784,
+  "n_usable": 34681,
+  "test_start": "2016-01-01 00:00:00+00:00",
+  "s3": null
+ },
+ "base_testyear2016_a0.8_avphysical": {
+  "n_test": 8784,
+  "n_usable": 34681,
+  "test_start": "2016-01-01 00:00:00+00:00",
+  "s3": null
+ },
+ "base_testyear2017_a0.8": {
+  "n_test": 8545,
+  "n_usable": 34681,
+  "test_start": "2017-01-01 00:00:00+00:00",
+  "s3": null
+ },
+ "base_testyear2017_a0.8_avphysical": {
+  "n_test": 8545,
+  "n_usable": 34681,
+  "test_start": "2017-01-01 00:00:00+00:00",
+  "s3": null
+ },
+ "base_testyear2018_a0.8": {
+  "n_test": 8759,
+  "n_usable": 34681,
+  "test_start": "2018-01-01 00:00:00+00:00",
+  "s3": null
+ },
+ "base_testyear2018_a0.8_avphysical": {
+  "n_test": 8759,
+  "n_usable": 34681,
+  "test_start": "2018-01-01 00:00:00+00:00",
+  "s3": null
+ },
+ "s2_a0.8": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "s2_a0.8_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": null
+ },
+ "s3_a0.8": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": {
+   "scale": 0.5794082629300448,
+   "bind_trainval": 0.1500064077918749,
+   "bind_test": 0.1847794753531277
+  }
+ },
+ "s3_a0.8_avphysical": {
+  "n_test": 3469,
+  "n_usable": 34681,
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "s3": {
+   "scale": 0.60379417173542,
+   "bind_trainval": 0.1500064077918749,
+   "bind_test": 0.1772845200345921
+  }
+ }
+}

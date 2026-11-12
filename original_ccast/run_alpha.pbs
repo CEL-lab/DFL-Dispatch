@@ -1,0 +1,63 @@
+#!/bin/bash
+#PBS -N ico_alpha
+#PBS -q gpus
+#PBS -l select=1:mem=64gb:ncpus=16:ngpus=1
+#PBS -l walltime=14:00:00
+#PBS -W group_list=x-ccast-prj-hpirim
+#PBS -j oe
+#PBS -m abe
+#PBS -M faria.farzana@ndsu.edu
+
+# ──────────────────────────────────────────────────────────────
+# alpha-sensitivity ablation (supports Contribution #2).
+# Trains ICO at a given ALPHA on the ORIGINAL base data and runs
+# the usual three-model comparison. PtO (alpha=1) and LS come free
+# each run as reference.
+# ──────────────────────────────────────────────────────────────
+# PREREQUISITE (one-time, backward-compatible) -- make ALPHA env-driven:
+#   sed -i 's/^ALPHA      = 0.80.*/ALPHA      = float(os.environ.get("ALPHA","0.80"))/' three_model_comparison.py
+#   (default stays 0.80, so base/scenario runs are unchanged)
+#
+# Submit the sweep (one seed is enough for an ablation; alpha=0.8 is
+# your base ICO and alpha=1.0 is PtO, so only 0.0/0.5/0.9 are new):
+#   for a in 0.0 0.5 0.9; do qsub -v ALPHA=$a,SEED=42 run_alpha.pbs; done
+# ──────────────────────────────────────────────────────────────
+
+WORK_DIR="$PBS_O_WORKDIR"
+SCRIPT="$WORK_DIR/three_model_comparison.py"
+VENV="$WORK_DIR/e2e"
+LOG_DIR="$WORK_DIR/run_logs"
+mkdir -p "$LOG_DIR"
+cd "$WORK_DIR" || { echo "Cannot cd to $WORK_DIR"; exit 1; }
+
+echo "=============================================="
+echo " Job ID  : $PBS_JOBID"
+echo " ALPHA   : ${ALPHA} | SEED : ${SEED}"
+echo "=============================================="
+
+module purge
+module load python/3.12.2
+module load cuda11.8/toolkit/11.8.0
+source "$VENV/bin/activate"
+
+python -c "import torch; print('PyTorch', torch.__version__, 'CUDA', torch.cuda.is_available())"
+python -c "import cvxpylayers, cvxpy, ecos, sklearn, pandas" || { echo "dep missing"; exit 1; }
+
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export CUDA_VISIBLE_DEVICES=0
+export MPLBACKEND=Agg
+
+export SEED=${SEED:-42}
+export ALPHA=${ALPHA:-0.80}
+export DATA_DIR="$WORK_DIR"                       # ORIGINAL base data (ablation, not a scenario)
+export SAVE_DIR="$WORK_DIR/results/alpha/a${ALPHA}/seed${SEED}"
+export REUSE_ICO=0                                # alpha changed -> ICO must retrain
+
+if [ ! -f "$DATA_DIR/data/modified_dataset.csv" ]; then echo "ERROR: base data missing"; exit 1; fi
+
+echo "Training ICO at alpha=${ALPHA} (seed ${SEED}) at $(date)"
+python "$SCRIPT" 2>&1 | tee "$LOG_DIR/ico_alpha_a${ALPHA}_seed${SEED}_${PBS_JOBID}.log"
+EXIT_CODE=${PIPESTATUS[0]}
+echo "alpha=${ALPHA} seed=${SEED} done | exit $EXIT_CODE"
+exit $EXIT_CODE

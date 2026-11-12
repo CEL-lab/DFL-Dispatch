@@ -1,0 +1,108 @@
+#!/bin/bash
+#PBS -N comp_seed
+#PBS -q gpus
+#PBS -l select=1:mem=64gb:ncpus=16:ngpus=1
+#PBS -l walltime=14:00:00
+#PBS -W group_list=x-ccast-prj-hpirim
+#PBS -j oe
+#PBS -m abe
+#PBS -M faria.farzana@ndsu.edu
+
+# ──────────────────────────────────────────────────────────────
+# Three-Model Comparison (ICO vs PtO vs LS) — NDSU CCAST
+# ──────────────────────────────────────────────────────────────
+# Usage: qsub -v SEED=42 run_compare.pbs
+#   By default this RETRAINS ICO fresh (REUSE_ICO=0) so ICO, PtO, and LS all
+#   come from the same fixed code in one run — the internally consistent setup.
+#   To instead reuse previously-saved ICO forecasts (only safe if those .npy
+#   files are from the CURRENT fixed code), submit with REUSE_ICO=1:
+#       qsub -v SEED=42,REUSE_ICO=1 run_compare.pbs
+# ──────────────────────────────────────────────────────────────
+
+# ── PATHS ────────────────────────────────────────────────────
+WORK_DIR="$PBS_O_WORKDIR"
+SCRIPT="$WORK_DIR/three_model_comparison.py"
+VENV="$WORK_DIR/e2e"
+LOG_DIR="$WORK_DIR/run_logs"
+
+# ── SETUP ────────────────────────────────────────────────────
+mkdir -p "$LOG_DIR"
+mkdir -p "$WORK_DIR/results/comparison"
+cd "$WORK_DIR" || { echo "Cannot cd to $WORK_DIR"; exit 1; }
+
+echo "=============================================="
+echo " Job ID        : $PBS_JOBID"
+echo " Node list     : $(cat $PBS_NODEFILE)"
+echo " Work dir      : $WORK_DIR"
+echo " Submit time   : $(date)"
+echo " SEED          : ${SEED}"
+echo " REUSE_ICO     : ${REUSE_ICO:-0}  (0 = retrain ICO fresh)"
+echo " Python script : $SCRIPT"
+echo "=============================================="
+
+# ── Load modules ─────────────────────────────────────────────
+module purge
+module load python/3.12.2
+module load cuda11.8/toolkit/11.8.0
+
+# ── Activate virtual environment ─────────────────────────────
+source "$VENV/bin/activate"
+
+# ── Verify ───────────────────────────────────────────────────
+echo ""
+echo "Environment check:"
+echo "  Python : $(which python)"
+echo "  Version: $(python --version 2>&1)"
+echo "  Venv   : $VIRTUAL_ENV"
+echo ""
+python -c "import torch; print(f'  PyTorch: {torch.__version__}, CUDA: {torch.cuda.is_available()}')" 2>&1
+python -c "import cvxpylayers; print('  cvxpylayers: OK')" 2>&1 || { echo "ERROR: cvxpylayers missing"; exit 1; }
+python -c "import cvxpy; print('  cvxpy: OK')" 2>&1 || { echo "ERROR: cvxpy missing — install with: pip install cvxpy"; exit 1; }
+python -c "import ecos; print('  ECOS solver: OK')" 2>&1 || { echo "ERROR: ecos missing — install with: pip install ecos"; exit 1; }
+python -c "import sklearn; print('  sklearn: OK')" 2>&1 || { echo "ERROR: sklearn missing"; exit 1; }
+python -c "import pandas; print('  pandas: OK')" 2>&1 || { echo "ERROR: pandas missing"; exit 1; }
+echo ""
+echo "GPU info:"
+nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader 2>/dev/null || echo "  nvidia-smi not available"
+echo ""
+
+# ── THREAD / GPU SETTINGS ────────────────────────────────────
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export NUMEXPR_NUM_THREADS=8
+export CUDA_VISIBLE_DEVICES=0
+export PYTHONUNBUFFERED=1
+export MPLBACKEND=Agg
+
+# ── Set seed and data paths ──────────────────────────────────
+export SEED=${SEED:-42}
+export DATA_DIR="$WORK_DIR"
+export SAVE_DIR="$WORK_DIR/results/comparison"
+export ICO_DIR="$WORK_DIR/results/ico_model"   # only used if REUSE_ICO=1
+# Retrain ICO fresh by default so ICO/PtO/LS are all from the current fixed code.
+# Set REUSE_ICO=1 at submit time only if the saved ICO forecasts are up to date.
+export REUSE_ICO=${REUSE_ICO:-0}
+
+# ── Verify data is present before launching ──────────────────
+if [ ! -f "$DATA_DIR/data/modified_dataset.csv" ]; then
+    echo "ERROR: energy data not found at $DATA_DIR/data/modified_dataset.csv"; exit 1
+fi
+if [ ! -f "$DATA_DIR/data/weather_features.csv" ]; then
+    echo "ERROR: weather data not found at $DATA_DIR/data/weather_features.csv"; exit 1
+fi
+
+# ── RUN ──────────────────────────────────────────────────────
+echo "Starting 3-model comparison with SEED=${SEED} at $(date)"
+echo ""
+
+python -u "$SCRIPT" 2>&1 | tee "$LOG_DIR/comp_seed${SEED}_${PBS_JOBID}.log"
+EXIT_CODE=${PIPESTATUS[0]}
+
+echo ""
+echo "=============================================="
+echo " SEED ${SEED} finished at $(date)"
+echo " Exit code: $EXIT_CODE"
+echo " Results:   $SAVE_DIR/comparison_seed${SEED}.csv"
+echo "=============================================="
+
+exit $EXIT_CODE

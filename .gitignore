@@ -1,0 +1,28 @@
+# --- Data: not redistributed; download from Kaggle (see README) ---
+weather_features.csv
+modified_dataset.csv
+energy_dataset.csv
+/data/
+
+# --- Large run outputs: archived separately (hourly forecasts, dispatch, weights) ---
+*.npz
+*.pt
+*.tgz
+
+# --- Job logs (contain cluster host names and paths) ---
+*.log
+ccast_results_v3/logs/
+
+# --- Smoke tests and superseded v2 runs ---
+/results/
+/ccast_results_v2/
+
+# --- Python / editor clutter ---
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+e2e/
+venv/
+.venv/
+.DS_Store
+Thumbs.db

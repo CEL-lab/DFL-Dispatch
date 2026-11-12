@@ -1,0 +1,52 @@
+#!/bin/bash
+#PBS -N v2_run
+#PBS -q gpus
+#PBS -l select=1:mem=64gb:ncpus=16:ngpus=1
+#PBS -l walltime=14:00:00
+#PBS -W group_list=x-ccast-prj-hpirim
+#PBS -j oe
+#PBS -m ae
+#PBS -M faria.farzana@ndsu.edu
+# ---------------------------------------------------------------------
+# Corrected EJOR-revision run: one seed x scenario x alpha.
+# Do not qsub this file directly; use:  bash submit.sh <stage>
+# (submit.sh passes SEED / SCENARIO / ALPHA / MODELS / TEST_YEAR and
+#  names the job and its log file in logs/).
+# ---------------------------------------------------------------------
+
+WORK_DIR="$PBS_O_WORKDIR"
+VENV="$WORK_DIR/e2e"
+cd "$WORK_DIR" || { echo "Cannot cd to $WORK_DIR"; exit 1; }
+
+module purge
+module load python/3.12.2
+module load cuda11.8/toolkit/11.8.0
+source "$VENV/bin/activate"
+
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export NUMEXPR_NUM_THREADS=8
+export CUDA_VISIBLE_DEVICES=0
+export MPLBACKEND=Agg
+export DATA_DIR="$WORK_DIR"
+export SAVE_DIR=${SAVE_DIR:-"$WORK_DIR/results/v2"}
+
+for f in data/modified_dataset.csv data/weather_features.csv run_experiment.py; do
+  [ -f "$WORK_DIR/$f" ] || { echo "ERROR: missing $WORK_DIR/$f"; exit 1; }
+done
+
+echo "=============================================="
+echo " Job        : $PBS_JOBID on $(hostname)"
+echo " Start      : $(date)"
+echo " SEED=$SEED SCENARIO=$SCENARIO ALPHA=$ALPHA MODELS=${MODELS:-all} TEST_YEAR=${TEST_YEAR:-none}"
+echo " Python     : $(which python) ($(python --version 2>&1))"
+nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo " no GPU visible"
+echo "=============================================="
+
+python -u run_experiment.py
+EXIT_CODE=$?
+
+echo "=============================================="
+echo " Finished at $(date) with exit code $EXIT_CODE"
+echo "=============================================="
+exit $EXIT_CODE

@@ -1,0 +1,48 @@
+#!/bin/bash
+#PBS -N ico_s1
+#PBS -q gpus
+#PBS -l select=1:mem=64gb:ncpus=16:ngpus=1
+#PBS -l walltime=00:30:00
+#PBS -W group_list=x-ccast-prj-hpirim
+#PBS -j oe
+#PBS -m abe
+#PBS -M faria.farzana@ndsu.edu
+
+# ──────────────────────────────────────────────────────────────
+# Scenario S1 — Economic re-pricing (post-hoc; NO training).
+# Reads base comparison_seed*.csv and re-prices at the stress VoLL
+# and across the real VoLL sweep.
+# ──────────────────────────────────────────────────────────────
+# Usage: qsub run_s1.pbs
+# NOTE: S1 needs no GPU and runs in seconds. The full-node request
+#       below just matches your working run_ico.pbs so the 'gpus'
+#       queue accepts it. Easier: run it on a login node instead:
+#         source e2e/bin/activate && \
+#         SAVE_DIR=$PWD/results/comparison python scenario_s1.py
+# ──────────────────────────────────────────────────────────────
+
+WORK_DIR="$PBS_O_WORKDIR"
+SCRIPT="$WORK_DIR/scenario_s1.py"
+VENV="$WORK_DIR/e2e"
+LOG_DIR="$WORK_DIR/run_logs"
+mkdir -p "$LOG_DIR"
+cd "$WORK_DIR" || { echo "Cannot cd to $WORK_DIR"; exit 1; }
+
+module purge
+module load python/3.12.2
+source "$VENV/bin/activate"
+
+export MPLBACKEND=Agg
+export SAVE_DIR="$WORK_DIR/results/comparison"   # where base comparison_seed*.csv live
+export C_FOSSIL=57                                # OMIE 2018 avg (EUR/MWh)
+export C_CLEAN=2                                  # IRENA variable O&M (EUR/MWh)
+
+if ! ls "$SAVE_DIR"/comparison_seed*.csv >/dev/null 2>&1; then
+    echo "ERROR: no comparison_seed*.csv in $SAVE_DIR (run the base comparison first)"; exit 1
+fi
+
+echo "Starting S1 re-pricing at $(date)"; echo ""
+python "$SCRIPT" 2>&1 | tee "$LOG_DIR/ico_s1_${PBS_JOBID}.log"
+EXIT_CODE=${PIPESTATUS[0]}
+echo ""; echo "S1 finished at $(date) | exit $EXIT_CODE"
+exit $EXIT_CODE

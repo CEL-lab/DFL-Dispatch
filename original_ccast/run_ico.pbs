@@ -1,0 +1,129 @@
+#!/bin/bash
+#PBS -N ico_seed
+#PBS -q gpus
+#PBS -l select=1:mem=64gb:ncpus=16:ngpus=1
+#PBS -l walltime=14:00:00
+#PBS -W group_list=x-ccast-prj-hpirim
+#PBS -j oe
+#PBS -m abe
+#PBS -M faria.farzana@ndsu.edu
+
+# ──────────────────────────────────────────────────────────────
+# ICO Model — Single-Seed Training Job for NDSU CCAST
+# ──────────────────────────────────────────────────────────────
+# Usage (base run, identical to original):
+#   qsub -v SEED=42 run_ico.pbs
+#
+# Reviewer experiments (all optional; any combination of these vars):
+#   Capacity sensitivity : qsub -v SEED=42,HEADROOM=1.3,FLOOR=0.10 run_ico.pbs
+#   Per-year             : qsub -v SEED=42,YEAR=2016 run_ico.pbs
+#   Train-past/test-next : qsub -v SEED=42,TEST_YEAR=2018 run_ico.pbs
+#   Rolling-origin fold  : qsub -v SEED=42,N_FOLDS=3,FOLD=0 run_ico.pbs
+#
+# Outputs auto-route to results/ico_model/<tag>/ so runs never collide.
+# ──────────────────────────────────────────────────────────────
+
+# ── PATHS ────────────────────────────────────────────────────
+WORK_DIR="$PBS_O_WORKDIR"
+SCRIPT="$WORK_DIR/ico_train_single_seed.py"
+VENV="$WORK_DIR/e2e"
+LOG_DIR="$WORK_DIR/run_logs"
+
+# ── SETUP ────────────────────────────────────────────────────
+mkdir -p "$LOG_DIR"
+mkdir -p "$WORK_DIR/results/ico_model"
+cd "$WORK_DIR" || { echo "Cannot cd to $WORK_DIR"; exit 1; }
+
+echo "=============================================="
+echo " Job ID        : $PBS_JOBID"
+echo " Node list     : $(cat $PBS_NODEFILE)"
+echo " Work dir      : $WORK_DIR"
+echo " Submit time   : $(date)"
+echo " SEED          : ${SEED}"
+echo " HEADROOM/FLOOR: ${HEADROOM:-1.2} / ${FLOOR:-0.05}"
+echo " YEAR          : ${YEAR:-<none>}"
+echo " TEST_YEAR     : ${TEST_YEAR:-<none>}"
+echo " N_FOLDS/FOLD  : ${N_FOLDS:-1} / ${FOLD:-0}"
+echo " Python script : $SCRIPT"
+echo "=============================================="
+
+# ── Load modules ─────────────────────────────────────────────
+module purge
+module load python/3.12.2
+module load cuda11.8/toolkit/11.8.0
+
+# ── Activate virtual environment ─────────────────────────────
+source "$VENV/bin/activate"
+
+# ── Verify ───────────────────────────────────────────────────
+echo ""
+echo "Environment check:"
+echo "  Python : $(which python)"
+echo "  Version: $(python --version 2>&1)"
+echo "  Venv   : $VIRTUAL_ENV"
+echo ""
+python -c "import torch; print(f'  PyTorch: {torch.__version__}, CUDA: {torch.cuda.is_available()}')" 2>&1
+python -c "import cvxpylayers; print('  cvxpylayers: OK')" 2>&1 || { echo "ERROR: cvxpylayers missing"; exit 1; }
+python -c "import cvxpy; print('  cvxpy: OK')" 2>&1 || { echo "ERROR: cvxpy missing — install with: pip install cvxpy"; exit 1; }
+python -c "import ecos; print('  ECOS solver: OK')" 2>&1 || { echo "ERROR: ecos missing — install with: pip install ecos"; exit 1; }
+python -c "import sklearn; print('  sklearn: OK')" 2>&1 || { echo "ERROR: sklearn missing"; exit 1; }
+python -c "import pandas; print('  pandas: OK')" 2>&1 || { echo "ERROR: pandas missing"; exit 1; }
+echo ""
+echo "GPU info:"
+nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader 2>/dev/null || echo "  nvidia-smi not available"
+echo ""
+
+# ── THREAD / GPU SETTINGS ────────────────────────────────────
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export NUMEXPR_NUM_THREADS=8
+export CUDA_VISIBLE_DEVICES=0
+export MPLBACKEND=Agg
+
+# ── Set seed and data paths ──────────────────────────────────
+export SEED=${SEED:-42}
+export DATA_DIR="$WORK_DIR"
+export SAVE_DIR="$WORK_DIR/results/ico_model"
+
+# ── Export experiment-mode vars so the Python process sees them ──
+# (qsub -v already injects them; re-exporting is harmless and makes intent explicit.)
+export HEADROOM=${HEADROOM:-1.2}
+export FLOOR=${FLOOR:-0.05}
+export YEAR=${YEAR:-}
+export TEST_YEAR=${TEST_YEAR:-}
+export N_FOLDS=${N_FOLDS:-1}
+export FOLD=${FOLD:-0}
+
+# ── Build a run tag (mirrors the Python tagging) for a unique log name ──
+RUN_TAG=""
+[ -n "$YEAR" ]      && RUN_TAG="${RUN_TAG}_year${YEAR}"
+[ -n "$TEST_YEAR" ] && RUN_TAG="${RUN_TAG}_testyear${TEST_YEAR}"
+[ "$N_FOLDS" != "1" ] && RUN_TAG="${RUN_TAG}_fold${FOLD}of${N_FOLDS}"
+[ "$HEADROOM" != "1.2" ]  && RUN_TAG="${RUN_TAG}_hr${HEADROOM}"
+[ "$FLOOR" != "0.05" ]    && RUN_TAG="${RUN_TAG}_fl${FLOOR}"
+RUN_TAG="${RUN_TAG#_}"           # strip leading underscore
+LOG_SUFFIX="seed${SEED}${RUN_TAG:+_$RUN_TAG}"
+
+# ── Verify data is present before launching ──────────────────
+if [ ! -f "$DATA_DIR/data/modified_dataset.csv" ]; then
+    echo "ERROR: energy data not found at $DATA_DIR/data/modified_dataset.csv"; exit 1
+fi
+if [ ! -f "$DATA_DIR/data/weather_features.csv" ]; then
+    echo "ERROR: weather data not found at $DATA_DIR/data/weather_features.csv"; exit 1
+fi
+
+# ── RUN ──────────────────────────────────────────────────────
+echo "Starting ICO training with SEED=${SEED} TAG=${RUN_TAG:-<base>} at $(date)"
+echo ""
+
+python "$SCRIPT" 2>&1 | tee "$LOG_DIR/ico_${LOG_SUFFIX}_${PBS_JOBID}.log"
+EXIT_CODE=${PIPESTATUS[0]}
+
+echo ""
+echo "=============================================="
+echo " SEED ${SEED} (${RUN_TAG:-base}) finished at $(date)"
+echo " Exit code: $EXIT_CODE"
+echo " Results:   $SAVE_DIR/${RUN_TAG:+$RUN_TAG/}metrics_seed${SEED}.csv"
+echo "=============================================="
+
+exit $EXIT_CODE

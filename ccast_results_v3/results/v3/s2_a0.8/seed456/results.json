@@ -1,0 +1,425 @@
+{
+ "config": {
+  "seed": 456,
+  "scenario": "s2",
+  "alpha": 0.8,
+  "test_year": "",
+  "headroom": 1.2,
+  "floor": 0.05,
+  "max_epochs": 100,
+  "train_subsample": 1,
+  "noise_sigma": 2000.0,
+  "noise_seed": 20240101,
+  "s3": null,
+  "qp_solver_training": "diffcp default (SCS)",
+  "qp_solver_eval": "ECOS (closed-form fallback on failure)",
+  "units": "QP in GW: cost 10 (fossil) / 0.1 (clean) per GW, slack 1000 per GW, smoothing 0.1*sum z^2 (z in GW)",
+  "forecast_floor_mw": 1.0,
+  "short_tol_mw": 1.0,
+  "kappa_rule": "OC/MSE_std on the full validation set with the warm-up model at the switch epoch (ICO, ASYM); OC/MSE_std of unshifted PtO on validation (OFFSET)",
+  "ls_dispatch": "same per-hour QP as the other models (paper Sec. 3.8.2 describes merit order; update text)",
+  "weather": {
+   "rows_raw": 178396,
+   "duplicate_rows_dropped": 3076,
+   "wind_rows_clipped": 3,
+   "wind_clip": 50.0,
+   "cities": [
+    "Barcelona",
+    "Bilbao",
+    "Madrid",
+    "Seville",
+    "Valencia"
+   ],
+   "temp_units": "deg C (Kelvin - 273.15)"
+  },
+  "availability": {
+   "mode": "proxy",
+   "cap_test_mean_mw": {
+    "Biomass": 592.0,
+    "Brown coal": 999.0,
+    "Gas": 20034.0,
+    "Hard coal": 8359.0,
+    "Oil": 449.0,
+    "Hydro RoR": 1415.8,
+    "Hydro reservoir": 5482.8,
+    "Nuclear": 7117.0,
+    "Other": 106.0,
+    "Other renew.": 115.0,
+    "Solar": 4218.9,
+    "Waste": 357.0,
+    "Wind": 9138.7
+   },
+   "actual_test_mean_mw": {
+    "Biomass": 339.2,
+    "Brown coal": 409.4,
+    "Gas": 6309.1,
+    "Hard coal": 4162.9,
+    "Oil": 282.3,
+    "Hydro RoR": 1031.6,
+    "Hydro reservoir": 2390.1,
+    "Nuclear": 6219.0,
+    "Other": 56.5,
+    "Other renew.": 97.5,
+    "Solar": 1179.8,
+    "Waste": 300.9,
+    "Wind": 5411.8
+   },
+   "solar_cap_night_mean_mw": 4117.3876733436055
+  }
+ },
+ "split": {
+  "train_start": "2015-01-07 23:00:00+00:00",
+  "val_start": "2018-03-17 22:00:00+00:00",
+  "test_start": "2018-08-09 10:00:00+00:00",
+  "test_last": "2018-12-31 22:00:00+00:00",
+  "n_usable": 34681,
+  "n_train": 27744,
+  "n_val": 3468,
+  "n_test": 3469,
+  "n_rows_after_merge": 35061,
+  "n_gap_hours_inserted": 3,
+  "rule": "chronological 80/10/10"
+ },
+ "checks": {
+  "qp_vs_closed": {
+   "max_abs_value_diff": 0.16573250394912975,
+   "max_abs_grad_diff": 0.07450022175009963,
+   "max_rel_grad_diff_under": 7.460421252861947e-05,
+   "max_rel_grad_diff_over": 0.001375454718473646,
+   "n_under": 27,
+   "n_over": 37,
+   "note": "under: dOC/dD ~ lambda - 1000; over: dOC/dD = lambda (~1.5-11)"
+  },
+  "fd_grad": [
+   [
+    1.3571613150900286,
+    1.3573743120982584
+   ],
+   [
+    10.173471744787534,
+    10.173004079589987
+   ],
+   [
+    10.823252784318917,
+    10.82262283954094
+   ],
+   [
+    1.831414201214126,
+    1.8302607516034186
+   ],
+   [
+    1.7852606747691666,
+    1.7827416838525068
+   ],
+   [
+    1.4275487850620743,
+    1.427425146435013
+   ],
+   [
+    10.93889393184199,
+    10.962172949703586
+   ],
+   [
+    1.3150971105238063,
+    2.4943959146437322
+   ]
+  ]
+ },
+ "env": {
+  "python": "3.12.2",
+  "torch": "2.6.0+cu124",
+  "cvxpy": "1.8.2",
+  "numpy": "2.4.3",
+  "pandas": "3.0.2",
+  "host": "gpu0026",
+  "cpu": "x86_64",
+  "cuda": "NVIDIA A10",
+  "threads": 8,
+  "cvxpylayers": "1.0.4",
+  "diffcp": "1.1.8",
+  "scs": "3.2.11",
+  "ecos": "2.0.14",
+  "sklearn": "1.8.0",
+  "scipy": "1.17.1"
+ },
+ "models": {
+  "PtO": {
+   "train": {
+    "best_epoch": 24,
+    "epochs_run": 49,
+    "kappa": null,
+    "train_minutes": 1.3680237134297688,
+    "qp_batches": 0,
+    "qp_failed_batches": 0,
+    "solver": null
+   },
+   "val": {
+    "mae": 1844.3853178308163,
+    "bias": -88.96874433251479,
+    "rmse": 2323.641540855089,
+    "mse_std": 0.21524868383273071,
+    "shortfall_mw": 966.6770310816656,
+    "shortfall_rate": 50.576701268742795,
+    "op_cost": 1000.789533997341
+   },
+   "test": {
+    "r2": 0.7696076729271988,
+    "mae": 1914.6786144875807,
+    "rmse": 2398.9306393548327,
+    "mape": 6.8517858378637,
+    "bias": -145.363592828787,
+    "shortfall_mw": 1030.0211191053597,
+    "shortfall_max_mw": 8594.00869686273,
+    "shortfall_rate": 51.71519169789565,
+    "shortfall_mwh": 3573143.262176493,
+    "excess_mw": 884.6575086136294,
+    "slack_hours": 0,
+    "identity_residual_mw": 1.5447175883309683e-05,
+    "op_cost": 1073.850979133487,
+    "qp_obj": 43.82985995539102,
+    "qp_status": {
+     "optimal": 3464,
+     "optimal_inaccurate": 5,
+     "closed_form_fallbacks": 0
+    },
+    "fossil_mw": 2418.2009677726105,
+    "clean_mw": 26360.71196115388,
+    "per_source_mw": {
+     "Biomass": 592.0,
+     "Brown coal": 413.5,
+     "Gas": 896.16,
+     "Hard coal": 896.17,
+     "Oil": 212.38,
+     "Hydro RoR": 1415.83,
+     "Hydro reservoir": 5282.14,
+     "Nuclear": 6798.8,
+     "Other": 106.0,
+     "Other renew.": 115.0,
+     "Solar": 4175.62,
+     "Waste": 357.0,
+     "Wind": 7518.32
+    }
+   }
+  },
+  "ICO": {
+   "train": {
+    "best_epoch": 24,
+    "epochs_run": 49,
+    "kappa": 4485.7371176318275,
+    "train_minutes": 45.094660087426504,
+    "qp_batches": 19096,
+    "qp_failed_batches": 0,
+    "solver": "diffcp default (SCS)"
+   },
+   "val": {
+    "mae": 1858.6095630261605,
+    "bias": 215.4879309846709,
+    "rmse": 2332.0264612074047,
+    "mse_std": 0.2168049475243897,
+    "shortfall_mw": 821.5608160207448,
+    "shortfall_rate": 45.15570934256055,
+    "op_cost": 857.0775952089883
+   },
+   "test": {
+    "r2": 0.7694689337774325,
+    "mae": 1921.5858969271253,
+    "rmse": 2399.652832473827,
+    "mape": 6.947264624713751,
+    "bias": 159.50706570483223,
+    "shortfall_mw": 881.0394131333591,
+    "shortfall_max_mw": 8309.882421953327,
+    "shortfall_rate": 46.26693571634477,
+    "shortfall_mwh": 3056325.7241596226,
+    "excess_mw": 1040.5464746988064,
+    "slack_hours": 0,
+    "identity_residual_mw": -2.4777874614301254e-06,
+    "op_cost": 926.7509402011259,
+    "qp_obj": 45.7115269351184,
+    "qp_status": {
+     "optimal": 3462,
+     "optimal_inaccurate": 7,
+     "closed_form_fallbacks": 0
+    },
+    "fossil_mw": 2577.4434375508436,
+    "clean_mw": 26506.34016343283,
+    "per_source_mw": {
+     "Biomass": 592.0,
+     "Brown coal": 432.2,
+     "Gas": 962.23,
+     "Hard coal": 962.25,
+     "Oil": 220.77,
+     "Hydro RoR": 1415.83,
+     "Hydro reservoir": 5298.24,
+     "Nuclear": 6837.6,
+     "Other": 106.0,
+     "Other renew.": 115.0,
+     "Solar": 4183.69,
+     "Waste": 357.0,
+     "Wind": 7600.98
+    }
+   }
+  },
+  "ASYM": {
+   "train": {
+    "best_epoch": 24,
+    "epochs_run": 49,
+    "kappa": 4485.7371176318275,
+    "train_minutes": 2.5858203848203023,
+    "qp_batches": 19096,
+    "qp_failed_batches": 0,
+    "solver": null
+   },
+   "val": {
+    "mae": 1858.6074381297865,
+    "bias": 215.50870067811815,
+    "rmse": 2332.0260566131938,
+    "mse_std": 0.21680487229538128,
+    "shortfall_mw": 821.5493687258343,
+    "shortfall_rate": 45.12687427912341,
+    "op_cost": 857.0659455144616
+   },
+   "test": {
+    "r2": 0.7694713957076325,
+    "mae": 1921.5785590550802,
+    "rmse": 2399.6400190304003,
+    "mape": 6.9472285665196685,
+    "bias": 159.43605674601844,
+    "shortfall_mw": 881.0712563458819,
+    "shortfall_max_mw": 8310.073146833594,
+    "shortfall_rate": 46.26693571634477,
+    "shortfall_mwh": 3056436.1882638643,
+    "excess_mw": 1040.5073121254786,
+    "slack_hours": 0,
+    "identity_residual_mw": 5.19135107879265e-06,
+    "op_cost": 926.7822958433601,
+    "qp_obj": 45.71103943831885,
+    "qp_status": {
+     "optimal": 3465,
+     "optimal_inaccurate": 4,
+     "closed_form_fallbacks": 0
+    },
+    "fossil_mw": 2577.4020592208253,
+    "clean_mw": 26506.310535976998,
+    "per_source_mw": {
+     "Biomass": 592.0,
+     "Brown coal": 432.2,
+     "Gas": 962.21,
+     "Hard coal": 962.23,
+     "Oil": 220.76,
+     "Hydro RoR": 1415.83,
+     "Hydro reservoir": 5298.23,
+     "Nuclear": 6837.59,
+     "Other": 106.0,
+     "Other renew.": 115.0,
+     "Solar": 4183.69,
+     "Waste": 357.0,
+     "Wind": 7600.96
+    }
+   }
+  },
+  "LS": {
+   "train": {},
+   "val": {
+    "mae": 2075.765696414536,
+    "bias": 50.7103482983427,
+    "rmse": 2619.92529337909,
+    "mse_std": 0.2736402988216535,
+    "shortfall_mw": 1012.5276740580964,
+    "shortfall_rate": 48.01038062283737,
+    "op_cost": 1046.8398328845828
+   },
+   "test": {
+    "r2": 0.7116371221480511,
+    "mae": 2141.4524568103216,
+    "rmse": 2683.8198532151537,
+    "mape": 7.6856518513475445,
+    "bias": 1.9721238338986185,
+    "shortfall_mw": 1069.7401663763317,
+    "shortfall_max_mw": 9366.598262680527,
+    "shortfall_rate": 48.486595560680314,
+    "shortfall_mwh": 3710928.6371594947,
+    "excess_mw": 1071.712290379485,
+    "slack_hours": 0,
+    "identity_residual_mw": -1.1187989912286866e-07,
+    "op_cost": 1113.6238592947877,
+    "qp_obj": 43.88369274750976,
+    "qp_status": {
+     "optimal": 3463,
+     "optimal_inaccurate": 6,
+     "closed_form_fallbacks": 0
+    },
+    "fossil_mw": 2400.9203419775995,
+    "clean_mw": 26525.328321443772,
+    "per_source_mw": {
+     "Biomass": 592.0,
+     "Brown coal": 414.61,
+     "Gas": 885.73,
+     "Hard coal": 885.74,
+     "Oil": 214.84,
+     "Hydro RoR": 1415.83,
+     "Hydro reservoir": 5300.4,
+     "Nuclear": 6850.36,
+     "Other": 106.0,
+     "Other renew.": 115.0,
+     "Solar": 4183.99,
+     "Waste": 357.0,
+     "Wind": 7604.75
+    }
+   }
+  },
+  "OFFSET": {
+   "train": {
+    "offset_mw": 380.0,
+    "kappa_val": 4649.457158934604,
+    "rule": "b minimises alpha*MSE_std + (1-alpha)*OC/kappa on validation; kappa = OC/MSE_std of unshifted PtO on validation"
+   },
+   "val": {
+    "mae": 1866.9150129594473,
+    "bias": 291.031252851561,
+    "rmse": 2340.1055002046237,
+    "mse_std": 0.2183097415065803,
+    "shortfall_mw": 787.9418800539431,
+    "shortfall_rate": 43.56978085351788,
+    "op_cost": 823.8647606599085
+   },
+   "test": {
+    "r2": 0.7682495600001872,
+    "mae": 1927.8052149132607,
+    "rmse": 2405.9908386337006,
+    "mape": 6.984912922550253,
+    "bias": 234.63640717121302,
+    "shortfall_mw": 846.5843977108598,
+    "shortfall_max_mw": 8214.007627088751,
+    "shortfall_rate": 45.344479677140384,
+    "shortfall_mwh": 2936801.2756589726,
+    "excess_mw": 1081.220814390043,
+    "slack_hours": 0,
+    "identity_residual_mw": -6.160164048196748e-06,
+    "op_cost": 892.8213192679476,
+    "qp_obj": 46.23692160749593,
+    "qp_status": {
+     "optimal": 3463,
+     "optimal_inaccurate": 6,
+     "closed_form_fallbacks": 0
+    },
+    "fossil_mw": 2623.164650278116,
+    "clean_mw": 26535.748305819285,
+    "per_source_mw": {
+     "Biomass": 592.0,
+     "Brown coal": 437.08,
+     "Gas": 981.62,
+     "Hard coal": 981.64,
+     "Oil": 222.82,
+     "Hydro RoR": 1415.83,
+     "Hydro reservoir": 5301.15,
+     "Nuclear": 6843.91,
+     "Other": 106.0,
+     "Other renew.": 115.0,
+     "Solar": 4184.86,
+     "Waste": 357.0,
+     "Wind": 7620.0
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,27 @@
+#!/bin/bash
+#PBS -N v3_run
+#PBS -q gpus
+#PBS -l select=1:mem=64gb:ncpus=16:ngpus=1
+#PBS -l walltime=08:00:00
+#PBS -W group_list=x-ccast-prj-hpirim
+#PBS -j oe
+#PBS -m n
+# Patched runner (F1-F16), run from harun.pirim scratch; uses the project e2e venv.
+# Submit with:  bash submit_v3.sh <smoke|base|alpha|s2|s3|rolling>
+WORK_DIR=/mmfs1/scratch/harun.pirim/ico_v2/code-data
+VENV=/mmfs1/projects/harun.pirim/Faria/Embedded_model_01/e2e
+cd "$WORK_DIR" || { echo "Cannot cd to $WORK_DIR"; exit 1; }
+module purge
+module load python/3.12.2
+module load cuda11.8/toolkit/11.8.0 2>/dev/null || module load cuda/12.6 2>/dev/null || true
+source "$VENV/bin/activate"
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8 CUDA_VISIBLE_DEVICES=0 MPLBACKEND=Agg
+export DATA_DIR="$WORK_DIR"
+export SAVE_DIR=${SAVE_DIR:-"$WORK_DIR/results/v3"}
+echo "== Job $PBS_JOBID on $(hostname), start $(date)"
+echo "== SEED=$SEED SCENARIO=$SCENARIO ALPHA=$ALPHA MODELS=${MODELS:-all} TEST_YEAR=${TEST_YEAR:-none} HEADROOM=${HEADROOM:-1.2} FLOOR=${FLOOR:-0.05}"
+echo "== python $(which python) $(python --version 2>&1); GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo none)"
+python -u run_experiment.py
+EXIT_CODE=$?
+echo "== Finished $(date) with exit code $EXIT_CODE"
+exit $EXIT_CODE
