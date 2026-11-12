@@ -37,14 +37,18 @@ shortfall, slack, capacities), `history_<model>.npy`, `weights_<model>.pt`.
 ## On CCAST (Prime)
 Working copy of the patched runner and data: `/mmfs1/scratch/harun.pirim/ico_v2/code-data/`
 (venv reused from `/mmfs1/projects/harun.pirim/Faria/Embedded_model_01/e2e`; GPU nodes are NVIDIA L4).
-    ssh prime
-    cd /mmfs1/scratch/harun.pirim/ico_v2/code-data
-    bash submit_v3.sh smoke      # then: base | alpha | s2 | s3 | rolling | capgrid | avail
-    # avail = AVAIL=physical (solar ceiling from t-24, zero at night) and AVAIL=realized (ex-post bound), 5 seeds each
-    qstat -u $USER               # logs/<job>.log is written when a job ends
-Outputs: results/v3/<tag>/seed<S>/.  Aggregate locally with
-    python aggregate.py <results_root> <out_prefix>     # writes <out_prefix>_summary.md/.csv
-Original (pre-audit) scripts: original_ccast/.  Faria's 26-Sep v2 results: ccast_results_v2/ (summary in v2_summary.md).
+
+```bash
+ssh prime
+cd /mmfs1/scratch/harun.pirim/ico_v2/code-data
+bash submit_v3.sh smoke    # then: base | alpha | s2 | s3 | rolling | capgrid | avail
+# avail = AVAIL=physical (solar ceiling from t-24, zero at night) and AVAIL=realized (ex-post bound), 5 seeds each
+qstat -u $USER             # logs/<job>.log is written when a job ends
+```
+
+Outputs: `results/v3/<tag>/seed<S>/`. Aggregate locally with
+`python aggregate.py <results_root> <out_prefix>` (writes `<out_prefix>_summary.md/.csv`).
+Original (pre-audit) scripts: `original_ccast/`.
 
 ## Scripts
     make_dataset.py   Kaggle energy_dataset.csv -> modified_dataset.csv (documents the transformation; --compare diffs against the file used)
