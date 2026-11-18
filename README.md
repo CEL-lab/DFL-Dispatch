@@ -3,7 +3,7 @@
 Code and summary results for the paper
 
 > **Decision-focused load forecasting for economic dispatch: when does an embedded optimization layer matter?**
-> F. Farzana, H. Pirim, C. Le, O. P. Yadav, T. Le. *Submitted to the European Journal of Operational Research.*
+> F. Farzana, H. Pirim, C. Le, O. P. Yadav, T. Le. *Manuscript in preparation.*
 
 A neural load forecaster is trained on a composite of forecast error and the operational cost of the economic
 dispatch its forecast induces. Five models share the same network, features, chronological split and seeds:
